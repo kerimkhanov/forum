@@ -45,6 +45,8 @@ func (h *Handler) MainPage(w http.ResponseWriter, r *http.Request) {
 	// h.serviceService.Register(tmpl)
 }
 
+//  При авторизации пользователя ты сравниваешь пароль с базой данных в которй он захэширован. Расшехируешь пароль в базе и справниваешь его со своим
+//  Если данные правильные создаешь сессию для этого пользователя и даешь ему куки
 func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/auth" {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -55,19 +57,24 @@ func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "file not found", http.StatusInternalServerError)
 		return
 	}
-	user2 := models.Users{}
-	err = h.service.GetUsers(user2)
-	if err != nil {
-		fmt.Errorf(err.Error())
-	}
-	err = CorrectAuth(user2, r.FormValue("Login"), r.FormValue("Email"), r.FormValue("Password"))
-	if err != nil {
-		fmt.Errorf(err.Error())
-	} else {
+	switch r.Method {
+	case "GET":
+		if err := tmpl.ExecuteTemplate(w, "auth.html", ""); err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+	case "POST":
+		user2 := models.Users{}
+		err = h.service.GetUsers(user2)
+		if err != nil {
+			fmt.Errorf("Handlers -> Authorization -> POST", err.Error())
+			return
+		}
+		err = CorrectAuth(user2, r.FormValue("Login"), r.FormValue("Email"), r.FormValue("Password"))
+		if err != nil {
+			fmt.Errorf("Handlers -> Authorization -> CorrectAuth", err.Error())
+			return
+		}
 		http.Redirect(w, r, "/", http.StatusFound)
-	}
-	if err := tmpl.ExecuteTemplate(w, "auth.html", ""); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 }
 
@@ -86,7 +93,6 @@ func CorrectAuth(user models.Users, Login, Email, Password string) error {
 		return errors.New("Invalid username/password")
 	}
 	return nil
-
 }
 
 func (h *Handler) Regis(w http.ResponseWriter, r *http.Request) {
