@@ -17,7 +17,7 @@ func NewService(s storage.Auth) *Service {
 
 type Auth interface {
 	AddUsers(user models.Users) error
-	GetUsers(user models.Users) error
+	GetUsers() ([]models.Users, error)
 }
 
 type AuthService struct {
@@ -35,7 +35,8 @@ func (s *AuthService) AddUsers(user models.Users) error {
 	return s.storage.CreateUsers(user)
 }
 
-func (s *AuthService) GetUsers(user models.Users) error {
+func (s *AuthService) GetUsers() ([]models.Users, error) {
 	// user.Password = hash
-	return s.storage.CreateUsers(user)
+	users, err := s.storage.GetUsers()
+	return users, err
 }
