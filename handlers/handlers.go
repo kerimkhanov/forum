@@ -59,39 +59,52 @@ func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case "GET":
+		fmt.Println("GET method")
 		if err := tmpl.ExecuteTemplate(w, "auth.html", ""); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	case "POST":
-		user2 := models.Users{}
-		err = h.service.GetUsers(user2)
+		fmt.Println("POst enter")
+		
+		user, err := h.service.UserByEmail(email)
 		if err != nil {
 			fmt.Errorf("Handlers -> Authorization -> POST", err.Error())
 			return
 		}
-		err = CorrectAuth(user2, r.FormValue("Login"), r.FormValue("Email"), r.FormValue("Password"))
-		if err != nil {
-			fmt.Errorf("Handlers -> Authorization -> CorrectAuth", err.Error())
-			return
+		fmt.Println(err)
+		err = CorrectAuth(user2, r.FormValue("Email"), r.FormValue("Password"))
+		fmt.Println(err)
+		if err == nil {
+			if err := tmpl.ExecuteTemplate(w, "auth.html", ""); err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
 		}
-		http.Redirect(w, r, "/", http.StatusFound)
+
+		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+		// if err == nil {
+		// http.Redirect(w, r, "/", http.StatusFound)
+		// }
+
 	}
 }
 
-func CorrectAuth(user models.Users, Login, Email, Password string) error {
+func CorrectAuth(user models.Users, Email, Password string) error {
+	fmt.Println(1)
 	count := 0
-	if Login == user.Login {
-		count++
-	}
+	fmt.Println(user)
+	fmt.Println(Password)
 	if Email == user.Email {
 		count++
 	}
 	if Password == user.Password {
 		count++
 	}
-	if count != 3 {
+	if count != 2 {
+		fmt.Println(2)
 		return errors.New("Invalid username/password")
 	}
+	fmt.Println(3)
+
 	return nil
 }
 
