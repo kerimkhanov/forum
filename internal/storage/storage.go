@@ -18,6 +18,7 @@ func NewDatabase(db *sql.DB) *Database {
 
 type Auth interface {
 	CreateUsers(user models.Users) error
+	GetUsers() ([]models.Users, error)
 }
 
 type AuthStorage struct {
@@ -44,18 +45,23 @@ func (d *AuthStorage) CreateUsers(user models.Users) error {
 	return nil
 }
 
-func (d *AuthStorage) GetUsers(user models.Users) error {
-	fmt.Print(user.Email)
-	records := `SELCT * FROM users`
+func (d *AuthStorage) GetUsers(email) ([]models.Users, error) {
+	var users []models.Users
+	records := `SELCT * FROM users WHERE email = %s` 
 	rows, err := d.db.Query(records)
 	if err != nil {
-		return err
+		return users, err
 	}
+	var user models.Users
 	for rows.Next() {
 		err = rows.Scan(&user.Login, &user.Email, &user.Password)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, user)
 		// fmt.Println(err)
 	}
 	// fmt.Println(user.Email)
 	rows.Close()
-	return nil
+	return users, nil
 }
