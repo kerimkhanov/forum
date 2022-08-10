@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"forum/internal/models"
+	"log"
+	"time"
 )
 
 type Database struct {
@@ -18,7 +20,8 @@ func NewDatabase(db *sql.DB) *Database {
 
 type Auth interface {
 	CreateUsers(user models.Users) error
-	GetUsers() ([]models.Users, error)
+	GetUser(email string) (models.Users, error)
+	CreateSession(userid int, uuid string, sessionTime time.Time)
 }
 
 type AuthStorage struct {
@@ -41,27 +44,29 @@ func (d *AuthStorage) CreateUsers(user models.Users) error {
 	if err != nil {
 		return err
 	}
-	fmt.Print(user)
 	return nil
 }
 
-func (d *AuthStorage) GetUsers(email) ([]models.Users, error) {
-	var users []models.Users
-	records := `SELCT * FROM users WHERE email = %s` 
-	rows, err := d.db.Query(records)
-	if err != nil {
-		return users, err
-	}
+func (d *AuthStorage) GetUser(email string) (models.Users, error) {
 	var user models.Users
-	for rows.Next() {
-		err = rows.Scan(&user.Login, &user.Email, &user.Password)
+	records := fmt.Sprintf(`SELECT * FROM users WHERE Email = "%s"`, email)
+	if err := d.db.QueryRow(records).Scan(&user.Id, &user.Login, &user.Email, &user.Password); err != nil {
 		if err != nil {
-			return users, err
+			fmt.Println("GetUser", err)
+			return user, fmt.Errorf("canPurchase %d: unknown album", user)
 		}
-		users = append(users, user)
-		// fmt.Println(err)
 	}
-	// fmt.Println(user.Email)
-	rows.Close()
-	return users, nil
+	return user, nil
+}
+
+func (d *AuthStorage) CreateSession(userid int, uuid string, dateTime time.Time) {
+	InsertRequest := `INSERT INTO Sessions (Value, UserId, TimeSessions) values (? , ? , ?)`
+	query, err := d.db.Prepare(InsertRequest)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = query.Exec(uuid, userid, dateTime.Add(120*time.Hour))
+	if err != nil {
+		log.Fatal(err)
+	}
 }

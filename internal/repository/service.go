@@ -1,8 +1,10 @@
-package internal
+package repository
 
 import (
+	"fmt"
 	"forum/internal/models"
 	"forum/internal/storage"
+	"time"
 )
 
 type Service struct {
@@ -17,7 +19,8 @@ func NewService(s storage.Auth) *Service {
 
 type Auth interface {
 	AddUsers(user models.Users) error
-	GetUsers() ([]models.Users, error)
+	UserByEmail(email string) (models.Users, error)
+	CreateSession(userid int, uuid string, sessionTime time.Time)
 }
 
 type AuthService struct {
@@ -35,8 +38,15 @@ func (s *AuthService) AddUsers(user models.Users) error {
 	return s.storage.CreateUsers(user)
 }
 
-func (s *AuthService) GetUsers() ([]models.Users, error) {
+func (s *AuthService) UserByEmail(email string) (models.Users, error) {
 	// user.Password = hash
-	users, err := s.storage.GetUsers()
-	return users, err
+	user, err := s.storage.GetUser(email)
+	if err != nil {
+		fmt.Errorf("Service -> UserByEmail: %v", err)
+	}
+	return user, err
+}
+
+func (s *AuthService) CreateSession(userid int, uuid string, datetime time.Time) {
+	s.storage.CreateSession(userid, uuid, datetime)
 }

@@ -4,7 +4,7 @@ package main
 
 import (
 	"forum/handlers"
-	"forum/internal"
+	internal "forum/internal/repository"
 	"forum/internal/storage"
 	"log"
 	"net/http"

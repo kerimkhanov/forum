@@ -1,12 +1,18 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
-	"forum/internal"
+	"forum/internal/appMiddleware"
 	"forum/internal/models"
+	"forum/internal/repository"
+	internal "forum/internal/repository"
 	"html/template"
+	"log"
 	"net/http"
+	"strconv"
+	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type Handler struct {
@@ -24,9 +30,9 @@ func NewHandler(service *internal.Service) *Handler {
 }
 
 func (h *Handler) Register(router *http.ServeMux) {
-	router.HandleFunc("/", h.MainPage)
-	router.HandleFunc("/auth", h.Authorization)
-	router.HandleFunc("/Regis", h.Regis)
+	router.HandleFunc("/", appMiddleware.Middleware(h.MainPage))
+	router.HandleFunc("/auth", appMiddleware.Middleware(h.Authorization))
+	router.HandleFunc("/Regis", appMiddleware.Middleware(h.Regis))
 }
 
 func (h *Handler) MainPage(w http.ResponseWriter, r *http.Request) {
@@ -65,47 +71,44 @@ func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
 		}
 	case "POST":
 		fmt.Println("POst enter")
-		
-		user, err := h.service.UserByEmail(email)
+		user, err := h.service.UserByEmail(r.FormValue("email"))
 		if err != nil {
 			fmt.Errorf("Handlers -> Authorization -> POST", err.Error())
 			return
 		}
-		fmt.Println(err)
-		err = CorrectAuth(user2, r.FormValue("Email"), r.FormValue("Password"))
-		fmt.Println(err)
-		if err == nil {
+		err = repository.CorrectAuth(user, r.FormValue("email"), r.FormValue("password"))
+		if err != nil {
+			fmt.Errorf("Handlers -> Authorization -> CorrectAuth", err)
 			if err := tmpl.ExecuteTemplate(w, "auth.html", ""); err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
 		}
+		if err != nil {
+			if err := tmpl.ExecuteTemplate(w, "index.html", ""); err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+		}
+		// set cookies
 
-		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-		// if err == nil {
-		// http.Redirect(w, r, "/", http.StatusFound)
-		// }
-
+		uuid := uuid.NewV4().String()
+		// save uuid in db connect with user
+		user_id, err := strconv.Atoi(user.Id)
+		if err != nil {
+			log.Println("error creating user", err)
+			if err := tmpl.ExecuteTemplate(w, "index.html", ""); err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+		}
+		h.service.CreateSession(user_id, uuid, time.Now())
+		http.SetCookie(w, &http.Cookie{
+			Name:    "session_token",
+			Value:   uuid,
+			Expires: time.Now().Add(120 * time.Hour),
+		})
+		w.WriteHeader(200)
+		return
+		// w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	}
-}
-
-func CorrectAuth(user models.Users, Email, Password string) error {
-	fmt.Println(1)
-	count := 0
-	fmt.Println(user)
-	fmt.Println(Password)
-	if Email == user.Email {
-		count++
-	}
-	if Password == user.Password {
-		count++
-	}
-	if count != 2 {
-		fmt.Println(2)
-		return errors.New("Invalid username/password")
-	}
-	fmt.Println(3)
-
-	return nil
 }
 
 func (h *Handler) Regis(w http.ResponseWriter, r *http.Request) {
@@ -119,10 +122,11 @@ func (h *Handler) Regis(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// storage.AddUsers(&sql.DB{}, r.FormValue("login"), r.FormValue("email"), r.FormValue("password"))
+	pass := repository.PasswordHash(r.FormValue("password"))
 	user := models.Users{
 		Login:    r.FormValue("Login"),
 		Email:    r.FormValue("email"),
-		Password: r.FormValue("password"),
+		Password: pass,
 	}
 	h.service.AddUsers(user)
 
