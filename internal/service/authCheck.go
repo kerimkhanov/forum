@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+
 	"forum/internal/models"
 
 	"golang.org/x/crypto/bcrypt"
@@ -17,9 +18,8 @@ func PasswordHash(password string) string {
 }
 
 // check password in hash
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+func CheckPasswordHash(password, hash string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
 func CorrectAuth(user models.Users, Email, Password string) error {

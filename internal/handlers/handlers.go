@@ -83,7 +83,6 @@ func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
 		// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		// 	}
 		// }
-		user, err := h.service.SetSession(r.FormValue("email"), r.FormValue("password"))
 		// set cookies
 		uuid := uuid.NewV4().String()
 		// save uuid in db connect with user
@@ -94,10 +93,10 @@ func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
 		}
-		h.service.CreateSession(user_id)
+		user, err := h.service.CreateSession(user_id)
 		http.SetCookie(w, &http.Cookie{
 			Name:    "session_token",
-			Value:   uuid,
+			Value:   user.Session_token,
 			Expires: time.Now().Add(120 * time.Hour),
 		})
 		w.WriteHeader(200)

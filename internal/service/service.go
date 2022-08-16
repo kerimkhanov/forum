@@ -54,6 +54,15 @@ func (s *AuthService) UserByEmail(email string) (models.Users, error) {
 }
 
 func (s *AuthService) CreateSession(userid int) (models.Users, error) {
+	user, err := s.storage.GetUserWithoutSession(username)
+	if err != nil {
+		return models.Users{}, fmt.Errorf("service.SetSession - GetUser: %v", err)
+	}
+	if err := CheckPasswordHash(password, user.Password); err != nil {
+		return models.Users{}, fmt.Errorf("service.SetSession - CheckPasswwordHash: %v", err)
+	}
+	user.Session_token = uuid.
+
 	var user models.Users
 	user.Id = strconv.Itoa(userid)
 	user.Session_token = uuid.NewV4().String()

@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"forum/internal/models"
@@ -22,7 +21,7 @@ func NewDatabase(db *sql.DB) *Database {
 type Auth interface {
 	CreateUsers(user models.Users) error
 	GetUser(email string) (models.Users, error)
-	CreateSession(user models.Users)
+	CreateSession(user models.Users) error
 	GetUserWithoutSession(login string) (models.Users, error)
 	GetUserWithSession(token string) (models.Users, error)
 	DeleteUserSession(token string) error
@@ -54,34 +53,28 @@ func (d *AuthStorage) CreateUsers(user models.Users) error {
 
 func (d *AuthStorage) GetUser(email string) (models.Users, error) {
 	var user models.Users
-	// records := fmt.Sprintf(`SELECT id, Login, Email, Password FROM Users WHERE Email = "%s"`, email)
+	records := fmt.Sprintf(`SELECT id, Login, Email, Password FROM Users WHERE Email = "%s"`, email)
 	fmt.Println(email)
-	records := fmt.Sprintf(`SELECT	*
-	FROM Users
-	WHERE Email = "%s";`, email)
+	// records := fmt.Sprintf(`SELECT	*
+	// FROM Users
+	// WHERE Email = "%s";`, email)
 	query := d.db.QueryRow(records)
 	// fmt.Println(query.Columns())
 	if err := query.Scan(&user.Id, &user.Login, &user.Email, &user.Password, &user.Session_token, &user.TimeSessions); err != nil {
-		fmt.Println("GetUser", user.Id)
-		fmt.Println("GetUser", user.Login)
-		fmt.Println("GetUser", user.Email)
-		fmt.Println("GetUser", user.Password)
-		fmt.Println("GetUser", user.Session_token)
-		fmt.Println("GetUser", user.TimeSessions)
-		fmt.Println("GetUser", err)
 		return user, fmt.Errorf("canPurchase %d: unknown album", user)
 	}
 	return user, nil
 }
 
-func (d *AuthStorage) CreateSession(user models.Users) {
-	InsertRequest := `UPDATE Sessions (Value, UserId, TimeSessions) values (? , ? , ?)`
+func (d *AuthStorage) CreateSession(username string, user models.Users) error {
+	InsertRequest := `UPDATE user (Session_token, TimeSessions) values (? , ?)`
 	query, err := d.db.Prepare(InsertRequest)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("storage - CreateSession %v", err)
 	}
-	_, err = query.Exec(user.Session_token, user.Id, time.Now().Add(120*time.Hour))
+	_, err = query.Exec(user.Session_token, time.Now().Add(120*time.Hour))
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("storage - CreateSession query.Exec %v", err)
 	}
+	return nil
 }
