@@ -1,10 +1,14 @@
-package repository
+package service
 
 import (
 	"fmt"
+	"strconv"
+	"time"
+
 	"forum/internal/models"
 	"forum/internal/storage"
-	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type Service struct {
@@ -20,7 +24,9 @@ func NewService(s storage.Auth) *Service {
 type Auth interface {
 	AddUsers(user models.Users) error
 	UserByEmail(email string) (models.Users, error)
-	CreateSession(userid int, uuid string, sessionTime time.Time)
+	CreateSession(userid int) (models.Users, error)
+	DeleteUserSession(session string) error
+	GetUserWithSession(session string) (models.Users, error)
 }
 
 type AuthService struct {
@@ -47,6 +53,19 @@ func (s *AuthService) UserByEmail(email string) (models.Users, error) {
 	return user, err
 }
 
-func (s *AuthService) CreateSession(userid int, uuid string, datetime time.Time) {
-	s.storage.CreateSession(userid, uuid, datetime)
+func (s *AuthService) CreateSession(userid int) (models.Users, error) {
+	var user models.Users
+	user.Id = strconv.Itoa(userid)
+	user.Session_token = uuid.NewV4().String()
+	user.TimeSessions = time.Now()
+	s.storage.CreateSession(user)
+	return user, nil
+}
+
+func (s *AuthService) DeleteUserSession(session string) error {
+	err := s.storage.DeleteUserSession(session)
+	if err != nil {
+		return fmt.Errorf("service.ParseSession - GetUser: %v", err)
+	}
+	return nil
 }

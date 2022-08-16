@@ -12,8 +12,6 @@ import (
 func CreateDb() *sql.DB {
 	db, err := sql.Open("sqlite3", "database.db")
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("asd")
 		os.Exit(1)
 	}
 	createTable(db)
@@ -21,23 +19,33 @@ func CreateDb() *sql.DB {
 }
 
 func createTable(db *sql.DB) {
-	CREATE_TABLE := `CREATE TABLE IF NOT EXISTS Users 
+	userTable := `CREATE TABLE IF NOT EXISTS Users 
 	(id INTEGER PRIMARY KEY NOT NULL,
 	Login VARCHAR(64) NOT NULL,
 	Email VARCHAR(64) NOT NULL,
-	Password VARCHAR(64) NOT NULL);
-	CREATE TABLE IF NOT EXISTS Sessions
-	(id INTEGER PRIMARY KEY NOT NULL,
-	Value VARCHAR(64) NOT NULL,
-	UserId INTEGER,
-	TimeSessions DATE,
-	FOREIGN KEY(UserId) REFERENCES Users(id));`
-	_, err := db.Exec(CREATE_TABLE)
+	Password VARCHAR(64) NOT NULL,
+	Session_token VARCHAR(64),
+	TimeSessions DATE);`
+	postTable := `CREATE TABLE IF NOT EXISTS post (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	title VARCHAR(64) NOT NULL,
+	text TEXT NOT NULL,
+	author VARCHAR(64) NOT NULL);`
+	err := dbExec(db, userTable, postTable)
 	if err != nil {
-		fmt.Println("asd")
-		fmt.Println(err)
+		fmt.Errorf("error storage - database.go - dbExec")
 	}
 	fmt.Println("Table created successfully!")
+}
+
+func dbExec(db *sql.DB, query ...string) error {
+	for i := 0; i < len(query); i++ {
+		_, err := db.Exec(query[i])
+		if err != nil {
+			return fmt.Errorf("error delivery - db.go - dbExec %s", err)
+		}
+	}
+	return nil
 }
 
 func AddUsers(db *sql.DB, Login string, Email string, Password string) {
