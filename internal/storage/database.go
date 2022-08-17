@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -46,16 +45,4 @@ func dbExec(db *sql.DB, query ...string) error {
 		}
 	}
 	return nil
-}
-
-func AddUsers(db *sql.DB, Login string, Email string, Password string) {
-	records := `INSERT INTO users(Login, Email, Password) VALUES (?, ?, ?)`
-	query, err := db.Prepare(records)
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = query.Exec(Login, Email, Password)
-	if err != nil {
-		log.Fatal(err)
-	}
 }

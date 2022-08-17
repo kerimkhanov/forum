@@ -7,6 +7,22 @@
     <title>Document</title>
 </head>
 <body>
-    
+    <header>
+        <div class="main">
+            <p class="sign">Ask a public question</p>
+            <form method="POST" action="/post/create" class="form">
+                <h2>Title</h2>
+                <p>Be specific and imagine you're asking a question to another person</p>
+                <input class="text" name="title" type="text" placeholder="Title">
+                <h2>Body</h2>
+                <p>Include all the information someone would need to answer your question</p>
+                <textarea class="text" name="body" type="text" placeholder="Question body"></textarea>
+                <h2>Tags</h2>
+                <p>Add up to 5 tags to describe what your question is about. Tags must be separated by spaces</p>
+                <input class="text" name="tags" type="text" placeholder="Tags">
+                <button type="submit" class="submit">Review your question</button>
+        </div>
+    </header>
+    <script src="../script.js"></script>
 </body>
 </html>

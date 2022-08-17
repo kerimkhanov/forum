@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -78,6 +79,7 @@ func (h *Handler) userIdentity(w http.ResponseWriter, r *http.Request) models.Us
 		if err == http.ErrNoCookie {
 			return models.Users{}
 		}
+		fmt.Println("userIdentity2")
 		h.ErrorPageHandle(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return models.Users{}
 	}
@@ -85,8 +87,10 @@ func (h *Handler) userIdentity(w http.ResponseWriter, r *http.Request) models.Us
 	if err != nil {
 		return models.Users{}
 	}
+	fmt.Printf("\nuser.TimeSessions ---> %s \n", user.TimeSessions)
 	if user.TimeSessions.Before(time.Now()) {
 		if err := h.service.DeleteUserSession(c.Value); err != nil {
+			fmt.Println("userIdentity3")
 			h.ErrorPageHandle(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return models.Users{}
 		}

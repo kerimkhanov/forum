@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"forum/internal/models"
 )
@@ -21,7 +20,7 @@ func NewDatabase(db *sql.DB) *Database {
 type Auth interface {
 	CreateUsers(user models.Users) error
 	GetUser(email string) (models.Users, error)
-	CreateSession(user models.Users) error
+	CreateSession(email string, user models.Users) error
 	GetUserWithoutSession(login string) (models.Users, error)
 	GetUserWithSession(token string) (models.Users, error)
 	DeleteUserSession(token string) error
@@ -45,8 +44,7 @@ func (d *AuthStorage) CreateUsers(user models.Users) error {
 	}
 	_, err = query.Exec(&user.Login, &user.Email, &user.Password)
 	if err != nil {
-		fmt.Printf("\n %s Login = %s Email = %s Password = %s\n", "Create Users", user.Login, user.Email, user.Password)
-		return err
+		return fmt.Errorf("\n %s Login = %s Email = %s Password = %s : -- %v\n", "Create Users", user.Login, user.Email, user.Password, err)
 	}
 	return nil
 }
@@ -66,15 +64,11 @@ func (d *AuthStorage) GetUser(email string) (models.Users, error) {
 	return user, nil
 }
 
-func (d *AuthStorage) CreateSession(username string, user models.Users) error {
-	InsertRequest := `UPDATE user (Session_token, TimeSessions) values (? , ?)`
-	query, err := d.db.Prepare(InsertRequest)
+func (d *AuthStorage) CreateSession(email string, user models.Users) error {
+	InsertRequest := `UPDATE users SET Session_token=$1, TimeSessions=$2 WHERE email=$3`
+	_, err := d.db.Exec(InsertRequest, user.Session_token, user.TimeSessions, email)
 	if err != nil {
 		return fmt.Errorf("storage - CreateSession %v", err)
-	}
-	_, err = query.Exec(user.Session_token, time.Now().Add(120*time.Hour))
-	if err != nil {
-		return fmt.Errorf("storage - CreateSession query.Exec %v", err)
 	}
 	return nil
 }

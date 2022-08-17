@@ -1,10 +1,6 @@
 package service
 
 import (
-	"errors"
-
-	"forum/internal/models"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,12 +18,12 @@ func CheckPasswordHash(password, hash string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-func CorrectAuth(user models.Users, Email, Password string) error {
-	if Email != user.Email {
-		return errors.New("Invalid email address")
-	}
-	if !CheckPasswordHash(Password, user.Password) {
-		return errors.New("password incorrect")
-	}
-	return nil
-}
+// func CorrectAuth(user models.Users, Email, Password string) error {
+// 	if Email != user.Email {
+// 		return errors.New("Invalid email address")
+// 	}
+// 	if !CheckPasswordHash(Password, user.Password) {
+// 		return errors.New("password incorrect")
+// 	}
+// 	return nil
+// }

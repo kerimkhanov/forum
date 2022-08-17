@@ -27,4 +27,9 @@ func (s *AuthService) SetSession(username, password string) (models.Users, error
 	}
 	user.Session_token = uuid.NewV4().String()
 	user.TimeSessions = time.Now().Add(10 * time.Hour)
+
+	if err := s.storage.CreateSession(username, user); err != nil {
+		return models.Users{}, fmt.Errorf("service.SetSession - CreateSession: %v", err)
+	}
+	return user, nil
 }
