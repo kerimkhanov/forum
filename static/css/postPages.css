@@ -1,0 +1,53 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: yellow;
+}
+
+.tm-row {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    margin: 30px 350px;
+    padding: 20px 30px;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.tm-row-author {
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.read-next {
+    text-align: right;
+}
+
+
+.nickname {
+    width: 80%;
+    line-height: 1.2;
+    padding: 10px 35px;
+    margin: 0 auto;
+    border-top: 1px solid #000000;
+    font-size: 18px;
+    display: block;
+}
+.comments {
+    color: blue;
+    min-height: 100px;
+    width: 80%;
+    font-size: 16px;
+    line-height: 1.2;
+    padding: 0px 35px;
+    margin: 0 auto;
+    display: block;
+}

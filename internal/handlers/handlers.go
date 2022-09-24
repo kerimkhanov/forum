@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -26,9 +27,18 @@ func NewHandler(service *service.Service) *Handler {
 }
 
 func (h *Handler) Register(router *http.ServeMux) {
+	fs := http.FileServer(http.Dir("./static"))
+	router.Handle("/static/", http.StripPrefix("/static/", fs))
 	router.HandleFunc("/", h.MainPage)
 	router.HandleFunc("/auth", h.Authorization)
 	router.HandleFunc("/SignUp", h.SignUp)
+	router.HandleFunc("/posts/create", h.CreatePost)
+	router.HandleFunc("/posts/view", h.PostById)
+	router.HandleFunc("/auth/logout", h.Logout)
+	router.HandleFunc("/posts/like", h.PostLike)
+	router.HandleFunc("/posts/dislike", h.PostDislike)
+	router.HandleFunc("/comments/like", h.commentLike)
+	router.HandleFunc("/comments/dislike", h.commentDislike)
 }
 
 func (h *Handler) MainPage(w http.ResponseWriter, r *http.Request) {
@@ -36,8 +46,32 @@ func (h *Handler) MainPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-	if err := h.tmpl.ExecuteTemplate(w, "index.html", ""); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	switch r.Method {
+	case "GET":
+		var Allpost models.Allpost
+		var err error
+		Allpost.Users = h.userIdentity(w, r)
+		Allpost.Posts, err = h.service.GetAllPosts()
+		if err != nil {
+			fmt.Println(err)
+			h.ErrorPageHandle(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		user := struct {
+			Users models.Users
+			Posts []models.Posts
+		}{
+			Allpost.Users,
+			Allpost.Posts,
+		}
+		if err := h.tmpl.ExecuteTemplate(w, "index.html", user); err != nil {
+			fmt.Println(err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+	default:
+		h.ErrorPageHandle(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
 	}
 }
 

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../templates/css/index.css" rel="stylesheet" type="text/css">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <div class="main">
+            <p class="sign">Create new post</p>
+            <form method="POST" action="/posts/create" class="form">
+                <h2>Title</h2>
+                <p> Be specific and imagine you're asking a question to another person</p>
+                <input class="text" name="title" type="text" placeholder="Write title...">
+                <h2>Body</h2>
+                <p>Add up to 5 tags to describe what your question is about. Tags must be separated by spaces</p>
+                <textarea class="text-area" name="body" type="text" placeholder="Please, write some text..."></textarea>
+                <h2>Tags</h2>
+                <p>You can add some tags on your post</p>
+                <input class="text" name="tags" type="text" placeholder="Write some tags...">
+                <button type="submit" class="submit">Push your post</button>
+            </form>
+        </div>
+    </header>
+
+</body>
+</html>

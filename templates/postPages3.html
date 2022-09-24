@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="/static/css/index.css">
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Posts</title>
+  <title>Post</title>
   
 </head>
 
@@ -23,14 +23,14 @@
   </header>
   <div class="tm-row">
     <div class="tm-center">
-      <a class="author" href="/">Author: {{ .Post.Author }}</a>
-      <p class="title">Title: {{ .Post.Title }}</p>
+      <a class="author" href="/">Author: {{ .Posts.Author }}</a>
+      <p class="title">Title: {{ .Posts.Title }}</p>
     </div>
     <div class="tm-center">
-      <p class="body">{{ .Post.Text }}</p>
+      <p class="body">{{ .Posts.Text }}</p>
     </div>
     <div class="tm-tags">
-        {{ range .Post.Tags }}
+        {{ range .Posts.Tags }}
         <p class="tags">{{ . }}</p>
         {{ end }}
     </div>
@@ -38,22 +38,22 @@
       {{ if eq .Users.Login ""}}
 
       {{ else }}
-      <form method="Post" action="/posts/view?id={{ .Post.Id }}">
+      <form method="post" action="/posts/view?id={{ .Posts.Id }}">
         <p class="Comments">Add comments</p>
         <textarea name="Comment" placeholder="Your Text" rows="5" cols="125"></textarea>
         <div class="comment-container">
             <button type="submit" class="btn-comment">Send Comment</button>
         </div>
-        <p>{{ .Post.Id }}</p>
-      <form method="Post" action="/posts/like?id={{ .Post.Id }}"><input type="image" src="/static/img/like.jpeg" alt=""></form>
-      <form method="Post" action="/posts/dislike?id={{ .Post.Id }}"><input type="image" src="/static/img/dislike.jpeg" alt=""></form>
-      <div>
+        <p>{{ .Posts.Id }}</p>
+        <form method="post" action="/posts/like?id={{ .Posts.Id }}"><a href="/posts/like?id={{ .Posts.Id }}">❤</a></form>
+        <form method="post" action="/posts/dislike?id={{ .Posts.Id }}"><a href="/posts/dislike?id={{ .Posts.Id }}">💔</a></form>
+         <div>
         <p class="answer">Comments</p>
-        {{ range .Post.Comments}}
+        {{ range .Posts.Comments}}
           <h4><p class="nickname">Login: {{ .Login }}</p></h4>
           <p class="comments">Comment: {{ .Comment }}</p>
-          <form method="Post" action="/comments/like?id={{ .Comment_id }}"><input type="image" src="/static/img/like.jpeg" alt=""></form>
-          <form method="Post" action="/comments/dislike?id={{ .Comment_id }}"><input type="image" src="/static/img/dislike.jpeg" alt=""></form>
+          <form method="post" action="/comment/like?id={{ .Comment_id }}"><a href="/comments/like?id={{ .Comment_id }}">❤</a></form>
+          <form method="post" action="/comment/dislike?id={{ .Comment_id }}"><a href="/comments/dislike?id={{ .Comment_id }}">💔</a></form>
         {{ end }}
       </div>
       {{ end }}

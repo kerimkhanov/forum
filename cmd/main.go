@@ -3,12 +3,12 @@
 package main
 
 import (
+	"forum/internal/handlers"
+	"forum/internal/storage"
 	"log"
 	"net/http"
 
-	"forum/internal/handlers"
 	internal "forum/internal/service"
-	"forum/internal/storage"
 )
 
 func main() {

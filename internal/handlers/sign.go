@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/logout" {
+	if r.URL.Path != "/auth/logout" {
 		fmt.Println("handler.logout - r.URL.Path error: ", r.URL.Path)
 		h.ErrorPageHandle(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
@@ -38,6 +38,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 	if r.URL.Path != "/auth" {
 		h.ErrorPageHandle(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
@@ -53,8 +54,20 @@ func (h *Handler) Authorization(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	case "POST":
+		email, ok := r.Form["email"]
+		if !ok {
+			fmt.Println("wtf@1?")
+			h.ErrorPageHandle(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		password, ok := r.Form["password"]
+		if !ok {
+			fmt.Println("wtf@2?")
+			h.ErrorPageHandle(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 		fmt.Println("POst enter")
-		user, err := h.service.CreateSession(r.FormValue("email"), r.FormValue("password"))
+		user, err := h.service.CreateSession(email[0], password[0])
 		fmt.Printf("\n user seesion %s \n", user.Session_token)
 		if err != nil {
 			fmt.Printf("handler - handlers.go - MainPage %v", err)
