@@ -12,6 +12,7 @@ type Post interface {
 	GetAllPosts() ([]models.Posts, error)
 	GetPostById(id int) (models.Posts, error)
 	AddComment(id int, text, login string) error
+	GetPostsByCategory(category string) ([]models.Posts, error)
 }
 
 type PostStorage struct {
@@ -22,6 +23,24 @@ func newPostStorage(db *sql.DB) *PostStorage {
 	return &PostStorage{
 		db: db,
 	}
+}
+
+func (d *PostStorage) GetPostsByCategory(category string) ([]models.Posts, error) {
+	var posts []models.Posts
+	query := fmt.Sprintf("SELECT * FROM posts WHERE id IN (SELECT post_id FROM tags WHERE tags = $1)", category)
+	rows, err := d.db.Query(query, &category)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var post models.Posts
+		if err := rows.Scan(&post.Id, &post.Title, &post.Text, &post.Author, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
+			return nil, fmt.Errorf("storage.post.GetPostByCategory", err)
+		}
+		posts = append(posts, post)
+
+	}
+	return posts, nil
 }
 
 func (d *PostStorage) AddComment(id int, text, login string) error {

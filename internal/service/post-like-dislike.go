@@ -10,8 +10,6 @@ import (
 )
 
 type LikeDislikePost interface {
-	AddPostLike(post_id int, login string) error
-	AddPostDislike(post_id int, login string) error
 	LikePost(post_id int, login string) error
 	DislikePost(post_id int, login string) error
 	GetPostLikes(post_id int) ([]string, error)
@@ -109,12 +107,4 @@ func (s *LikeDislikePostService) LikePost(post_id int, login string) error {
 	}
 	fmt.Println("Here2")
 	return nil
-}
-
-func (s *LikeDislikePostService) AddPostDislike(post_id int, login string) error {
-	return s.storage.AddPostDislike(post_id, login)
-}
-
-func (s *LikeDislikePostService) AddPostLike(post_id int, login string) error {
-	return s.storage.AddPostLike(post_id, login)
 }

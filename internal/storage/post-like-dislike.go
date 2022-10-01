@@ -6,8 +6,6 @@ import (
 )
 
 type LikeDislikePost interface {
-	AddPostLike(post_id int, login string) error
-	AddPostDislike(post_id int, login string) error
 	PostHasLike(post_id int, login string) error
 	PostHasDislike(post_id int, login string) error
 	RemoveLikeFromPost(post_id int, login string) error
@@ -72,7 +70,17 @@ func (d *LikeDislikePostStorage) DislikePost(post_id int, login string) error {
 	query := `INSERT INTO dislikes(post_id, login) VALUES($1, $2)`
 	_, err := d.db.Exec(query, post_id, login)
 	if err != nil {
-		return fmt.Errorf("storage.DislikePost.DB.Exec : %v", err)
+		return fmt.Errorf("storage.DislikePost.DB.Exec : %w", err)
+	}
+	query = `UPDATE post SET dislikes = dislikes + 1 WHERE id = $1`
+	_, err = d.db.Exec(query, post_id)
+	if err != nil {
+		return fmt.Errorf("storage.post.go.DislikePost: %w", err)
+	}
+	query = `UPDATE users SET dislikes = dislikes + 1 WHERE login = (SELECT author FROM post WHERE id = $1)`
+	_, err = d.db.Exec(query, post_id)
+	if err != nil {
+		return fmt.Errorf("storage.post.DislikePost.Exec: %w", err)
 	}
 	return nil
 }
@@ -83,6 +91,16 @@ func (d *LikeDislikePostStorage) LikePost(post_id int, login string) error {
 	if err != nil {
 		return fmt.Errorf("storage: like post: %v", err)
 	}
+	query = `UPDATE post SET likes = likes + 1 WHERE id = $1`
+	_, err = d.db.Exec(query, post_id)
+	if err != nil {
+		return fmt.Errorf("storage: like post: %w", err)
+	}
+	query = `UPDATE users SET likes = likes + 1 WHERE login = (SELECT author FROM post WHERE id = $1)`
+	_, err = d.db.Exec(query, post_id)
+	if err != nil {
+		return fmt.Errorf("storage: like post: %w", err)
+	}
 	return nil
 }
 
@@ -92,6 +110,16 @@ func (d *LikeDislikePostStorage) RemoveDislikeFromPost(post_id int, login string
 	if err != nil {
 		return fmt.Errorf("storage: remove disLike from post: %v", err)
 	}
+	query = `UPDATE post SET likes = likes - 1 WHERE id = $1`
+	_, err = d.db.Exec(query, post_id)
+	if err != nil {
+		return fmt.Errorf("storage.post-likes-dislikes.RemoveLikeFromPost:%w", err)
+	}
+	query = `UPDATE users SET likes = likes - 1 WHERE login = (SELECT author FROM post WHERE id = $1)`
+	_, err = d.db.Exec(query, login)
+	if err != nil {
+		return fmt.Errorf("storage.post-likes-dislikes.RemoveDislikeFromPost:%w", err)
+	}
 	return nil
 }
 
@@ -100,6 +128,16 @@ func (d *LikeDislikePostStorage) RemoveLikeFromPost(post_id int, login string) e
 	_, err := d.db.Exec(query, post_id, login)
 	if err != nil {
 		return fmt.Errorf("storage: remove like from post: %v", err)
+	}
+	query = `UPDATE post SET likes = likes - 1 WHERE id = $1`
+	_, err = d.db.Exec(query, post_id)
+	if err != nil {
+		return fmt.Errorf("storage.post-likes-dislikes.RemoveLikeFromPost:%w", err)
+	}
+	query = `UPDATE users SET likes = likes - 1 WHERE login = (SELECT author FROM post WHERE id = $1)`
+	_, err = d.db.Exec(query, login)
+	if err != nil {
+		return fmt.Errorf("storage.post-likes-dislikes.RemoveLikeFromPost:%w", err)
 	}
 	return nil
 }
@@ -122,24 +160,6 @@ func (d *LikeDislikePostStorage) PostHasLike(post_id int, login string) error {
 	err := row.Scan(&post_id, &login)
 	if err != nil {
 		return fmt.Errorf("storage: post has like: %v", err)
-	}
-	return nil
-}
-
-func (d *LikeDislikePostStorage) AddPostDislike(post_id int, login string) error {
-	query := `INSERT INTO dislikes (post_id, login) VALUES ($1, $2)`
-	_, err := d.db.Exec(query, post_id, login)
-	if err != nil {
-		return fmt.Errorf("storage.Like.AddPostDislike - DB.Exec: %v", err)
-	}
-	return nil
-}
-
-func (d *LikeDislikePostStorage) AddPostLike(post_id int, login string) error {
-	query := `INSERT INTO likes (post_id, login) VALUES ($1, $2)`
-	_, err := d.db.Exec(query, post_id, login)
-	if err != nil {
-		return fmt.Errorf("storage.Like.AddPostLike - DB.Exec: %v", err)
 	}
 	return nil
 }

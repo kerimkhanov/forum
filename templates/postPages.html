@@ -36,7 +36,6 @@
     </div>
     <div>
       {{ if eq .Users.Login ""}}
-
       {{ else }}
       <form method="post" action="/posts/view?id={{ .Posts.Id }}">
         <p class="Comments">Add comments</p>
@@ -45,7 +44,6 @@
             <button type="submit" class="btn-comment">Send Comment</button>
         </div>
       </form>
-        <p>{{ .Posts.Id }}</p>
       <span>{{ len .PostLikes }}</span> 
       <form method="post" action="/posts/like?id={{ .Posts.Id }}"><input type="image" src="/static/img/like.jpeg" alt=""></form>
       <span>{{ len .PostDislikes }}</span> 

@@ -24,6 +24,12 @@
       {{ if .Users.Login }}
       <a href="/posts/create" class="submit">Ask question</a>
       {{ end }}
+      <div class="filter">
+        <a href="/?time=new">New</a>
+        <a href="/?time=old">Old</a>
+        <a href="/?likes=most">Most Likes</a>
+        <a href="/?likes=least">Least Likes</a>
+    </div>
       {{ range .Posts }}
         <div class="tm-row">
           <div class="tm-row-author">

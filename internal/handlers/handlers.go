@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -51,11 +52,21 @@ func (h *Handler) MainPage(w http.ResponseWriter, r *http.Request) {
 		var Allpost models.Allpost
 		var err error
 		Allpost.Users = h.userIdentity(w, r)
-		Allpost.Posts, err = h.service.GetAllPosts()
-		if err != nil {
-			fmt.Println(err)
-			h.ErrorPageHandle(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
+		if len(r.URL.Query()) == 0 {
+			Allpost.Posts, err = h.service.GetAllPosts()
+			if err != nil {
+				fmt.Println(err)
+				h.ErrorPageHandle(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			Allpost.Posts, err = h.service.GetAllPostsBy(Allpost.Users, r.URL.Query())
+			if err != nil {
+				if errors.Is(err, errors.New("user does not exist or password incorrect")) {
+					h.ErrorPageHandle(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+					return
+				}
+			}
 		}
 		user := struct {
 			Users models.Users

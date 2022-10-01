@@ -119,6 +119,11 @@ func (d *LikeDislikeCommentStorage) AddCommentDislike(comment_id int, login stri
 	if err != nil {
 		return fmt.Errorf("storage.Like.AddPostLike - DB.Exec: %v", err)
 	}
+	query = `UPDATE comments SET dislikes = dislikes + 1 WHERE comment_id = $1`
+	_, err = d.db.Exec(query, comment_id)
+	if err != nil {
+		return fmt.Errorf("storage.comment-like-dislike.AddCommentDislike:%w", err)
+	}
 	return nil
 }
 
@@ -127,6 +132,11 @@ func (d *LikeDislikeCommentStorage) LikeComment(comment_id int, login string) er
 	_, err := d.db.Exec(query, comment_id, login)
 	if err != nil {
 		return fmt.Errorf("storage: like comment: %v", err)
+	}
+	query = `update comments SET likes = likes + 1 WHERE comment_id = $1`
+	_, err = d.db.Exec(query, comment_id)
+	if err != nil {
+		return fmt.Errorf("storage.comment-like-dislike.LikeComment:%w", err)
 	}
 	return nil
 }
@@ -137,6 +147,11 @@ func (d *LikeDislikeCommentStorage) RemoveDislikeFromComment(comment_id int, log
 	if err != nil {
 		return fmt.Errorf("storage: remove dislike from comment: %v", err)
 	}
+	query = `UPDATE comments SET dislikes = dislikes - 1 WHERE comment_id = $1`
+	_, err = d.db.Exec(query, comment_id)
+	if err != nil {
+		return fmt.Errorf("storage.comment-like-dislike.RemoveDislikeFromComment:%w", err)
+	}
 	return nil
 }
 
@@ -145,6 +160,11 @@ func (d *LikeDislikeCommentStorage) RemoveLikeFromComment(comment_id int, login 
 	_, err := d.db.Exec(query, comment_id, login)
 	if err != nil {
 		return fmt.Errorf("storage: remove like from comment: %v", err)
+	}
+	query = `UPDATE comments SET likes = likes - 1 WHERE comment_id = $1`
+	_, err = d.db.Exec(query, comment_id)
+	if err != nil {
+		return fmt.Errorf("storage.comment-like-dislike.removeLikeFromComment: %v", err)
 	}
 	return nil
 }
